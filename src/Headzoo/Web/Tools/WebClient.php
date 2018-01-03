@@ -1,6 +1,5 @@
 <?php
 namespace Headzoo\Web\Tools;
-use Headzoo\Utilities\Complete;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
@@ -206,9 +205,8 @@ class WebClient
         $this->prepareHeaders();
         $this->prepareData();
         $this->exec();
-        $this->complete->invoke();
         
-        return new WebResponse($this->response);
+        return $this->response;
     }
 
     /**
@@ -309,14 +307,7 @@ class WebClient
     protected function prepareCurl()
     {
         $this->curl = curl_init();
-        $this->complete = Complete::factory(function() {
-            if ($this->curl) {
-                curl_close($this->curl);
-            }
-            $this->curl     = null;
-            $this->complete = null;
-        });
-
+        
         foreach(self::$curlOptions as $option => $value) {
             curl_setopt($this->curl, $option, $value);
         }
@@ -373,14 +364,7 @@ class WebClient
         $response_text = curl_exec($this->curl);
         $this->info    = curl_getinfo($this->curl);
         $this->logInformation();
-        
-        if (false === $response_text) {
-            throw new Exceptions\WebException(
-                curl_error($this->curl),
-                curl_errno($this->curl)
-            );
-        }
-        
+      
         /** @var $options string */
         $this->response["info"] = $this->info;
         $this->response["code"] = $this->response["info"]["http_code"];
@@ -393,10 +377,7 @@ class WebClient
             0,
             $this->response["info"]["header_size"]
         );
-        $this->response["headers"] = $this->getHeadersParser()->parse(
-            $this->response["headers"],
-            $options
-        );
+        
         $this->response["version"] = explode(" ", $options, 3)[0];
     }
 
