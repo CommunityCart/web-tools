@@ -377,8 +377,7 @@ class WebClient
             0,
             $this->response["info"]["header_size"]
         );
-        
-        $this->response["version"] = explode(" ", $options, 3)[0];
+      
     }
 
     /**
